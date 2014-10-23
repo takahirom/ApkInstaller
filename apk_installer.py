@@ -48,20 +48,26 @@ class Root(FloatLayout):
             target=self.install_and_loop, args=[os.path.join(path, filename[0])]).start()
 
     def install_and_loop(self, path):
-        print(os.path.dirname(os.path.realpath(__file__)) +
-              "/adb install -r " + path)
+
         f = tempfile.TemporaryFile()
-        proc = subprocess.Popen(os.path.dirname(os.path.realpath(
-            __file__)) + "/adb install -r " + path, shell=True, stdout=f, stderr=f)
-        time.sleep(2)
+        adbPath = os.path.dirname(os.path.realpath(__file__)) + "/adb"
+        proc = subprocess.Popen(adbPath+" install -r " + path+"\n", shell=True, stdout=f, stderr=f)
+        self.addText(adbPath+" install -r " + path+"\n")
+        self.addText(u"now installing...please wait 10 second...")
+        time.sleep(10)
         proc.terminate()
         # wait for the process to terminate otherwise the output is garbled
         proc.wait()
 
         # print saved output
         f.seek(0)  # rewind to the beginning of the file
-        self.text_input.text = str(f.read())
+        for line in str(f.read()).split("\n"):
+            self.addText(line)
+        print "test"
         f.close()
+    def addText(self,text):
+        self.text_input.text = self.text_input.text + text+"\n\n"
+
 
 
 class ApkInstaller(App):
