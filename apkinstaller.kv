@@ -10,12 +10,13 @@ Root:
             size_hint_y: None
             height: 30
             Button:
-                text: u'select apk file'
+                text: u'Prease Select apk file(It take 10 second)'
                 on_release: root.show_load()
 
         BoxLayout:
-            RstDocument:
+            Label:
                 id: text_input
+                line_height: 10
                 text: ''
                 show_errors: True
 

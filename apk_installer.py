@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
+from multiprocessing import Process, freeze_support
+
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.factory import Factory
@@ -12,7 +14,7 @@ import select
 from fcntl import fcntl, F_GETFL, F_SETFL
 from os import O_NONBLOCK, read
 import tempfile
-
+import commands
 import os
 
 
@@ -42,29 +44,28 @@ class Root(FloatLayout):
         self._popup.open()
 
     def install(self, path, filename):
-        self.dismiss_popup()
-        print os.path.join(path, filename[0])
-        threading.Thread(
-            target=self.install_and_loop, args=[os.path.join(path, filename[0])]).start()
+    
+        try:
+            f = tempfile.TemporaryFile()
+            adbPath = os.path.dirname(os.path.realpath(__file__)) + "/adb"
+            apkFilePath = os.path.join(path, filename[0])
+            
+            proc = subprocess.Popen(adbPath+" install -r " + apkFilePath+"\n", shell=True, stdout=f, stderr=f)
+            self.addText(adbPath+" install -r " + apkFilePath+"\n")
+            self.addText(u"now installing...please wait 10 second...")
+            time.sleep(10)
+            proc.terminate()
+            ## wait for the process to terminate otherwise the output is garbled
+            proc.wait()
 
-    def install_and_loop(self, path):
+            # print saved output
+            f.seek(0)   #rewind to the beginning of the file
+            for line in str(f.read()).split("\n"):
+                self.addText(line)
+            f.close()
+        except Exception, e:
+            raise e
 
-        f = tempfile.TemporaryFile()
-        adbPath = os.path.dirname(os.path.realpath(__file__)) + "/adb"
-        proc = subprocess.Popen(adbPath+" install -r " + path+"\n", shell=True, stdout=f, stderr=f)
-        self.addText(adbPath+" install -r " + path+"\n")
-        self.addText(u"now installing...please wait 10 second...")
-        time.sleep(10)
-        proc.terminate()
-        # wait for the process to terminate otherwise the output is garbled
-        proc.wait()
-
-        # print saved output
-        f.seek(0)  # rewind to the beginning of the file
-        for line in str(f.read()).split("\n"):
-            self.addText(line)
-        print "test"
-        f.close()
     def addText(self,text):
         self.text_input.text = self.text_input.text + text+"\n\n"
 
@@ -79,4 +80,5 @@ Factory.register('LoadDialog', cls=LoadDialog)
 Factory.register('SaveDialog', cls=SaveDialog)
 
 if __name__ == '__main__':
-    ApkInstaller().run()
+    freeze_support()
+    Process(target=ApkInstaller().run).start()
