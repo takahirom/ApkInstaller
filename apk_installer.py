@@ -10,12 +10,13 @@ from kivy.uix.popup import Popup
 import subprocess
 import time
 import threading
-import select
-from fcntl import fcntl, F_GETFL, F_SETFL
 from os import O_NONBLOCK, read
 import tempfile
-import commands
 import os
+from kivy.config import Config
+Config.set('graphics', 'width', '400')
+Config.set('graphics', 'height', '400')
+import psutil
 
 
 class LoadDialog(FloatLayout):
@@ -45,35 +46,44 @@ class Root(FloatLayout):
 
     def install(self, path, filename):
         self.dismiss_popup()
-        thread = threading.Thread(target=self.thread_install,args=(path,filename))
+        thread = threading.Thread(
+            target=self.thread_install, args=(path, filename))
         thread.setDaemon(True)
         thread.start()
 
     def thread_install(self, path, filename):
         try:
+            PROCNAME = "adb"
+
+            for proc in psutil.process_iter():
+                if proc.name() == PROCNAME:
+                    proc.kill()
+
             f = tempfile.TemporaryFile()
-            adbPath = "'"+os.path.dirname(os.path.realpath(__file__)) + "/adb'"
-            apkFilePath = "'"+os.path.join(path, filename[0])+"'"
-            
-            proc = subprocess.Popen(adbPath+" install -r " + apkFilePath+"\n", shell=True, stdout=f, stderr=f)
-            self.addText(adbPath+" install -r " + apkFilePath+"\n")
+            adbPath = "'" + os.path.dirname(os.path.realpath(__file__)) + "/adb'"
+            apkFilePath = "'" + os.path.join(path, filename[0]) + "'"
+
+            #killServerCommand = adbPath + " kill-server"
+            installCommand = adbPath + " install -r " + apkFilePath
+            command = installCommand + "\n"
+            proc = subprocess.Popen(command, shell=True, stdout=f, stderr=f)
+            self.addText(command)
             self.addText(u"Now installing...Please wait 10 second...")
             time.sleep(10)
             proc.terminate()
-            ## wait for the process to terminate otherwise the output is garbled
+            # wait for the process to terminate otherwise the output is garbled
             proc.wait()
 
             # print saved output
-            f.seek(0)   #rewind to the beginning of the file
+            f.seek(0)  # rewind to the beginning of the file
             for line in str(f.read()).split("\n"):
                 self.addText(line)
             f.close()
         except Exception, e:
             raise e
 
-    def addText(self,text):
-        self.text_input.text = self.text_input.text + text+"\n\n"
-
+    def addText(self, text):
+        self.text_input.text = self.text_input.text + text + "\n\n"
 
 
 class ApkInstaller(App):
