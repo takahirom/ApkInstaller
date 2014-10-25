@@ -44,7 +44,12 @@ class Root(FloatLayout):
         self._popup.open()
 
     def install(self, path, filename):
-    
+        self.dismiss_popup()
+        thread = threading.Thread(target=self.thread_install,args=(path,filename))
+        thread.setDaemon(True)
+        thread.start()
+
+    def thread_install(self, path, filename):
         try:
             f = tempfile.TemporaryFile()
             adbPath = os.path.dirname(os.path.realpath(__file__)) + "/adb"
@@ -81,4 +86,4 @@ Factory.register('SaveDialog', cls=SaveDialog)
 
 if __name__ == '__main__':
     freeze_support()
-    Process(target=ApkInstaller().run).start()
+    ApkInstaller().run()
