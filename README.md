@@ -3,7 +3,7 @@ ApkInstaller
 
 For NOT developper. GUI apk installer
 
-![image](https://cloud.githubusercontent.com/assets/1386930/4779758/66a5f73a-5c43-11e4-8ba0-2fe5fe9f79df.png)
+![image](https://cloud.githubusercontent.com/assets/1386930/4779783/72cf41f0-5c44-11e4-89eb-55effeaf1cb5.png)
 
 ## License
 
