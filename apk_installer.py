@@ -52,12 +52,12 @@ class Root(FloatLayout):
     def thread_install(self, path, filename):
         try:
             f = tempfile.TemporaryFile()
-            adbPath = os.path.dirname(os.path.realpath(__file__)) + "/adb"
-            apkFilePath = os.path.join(path, filename[0])
+            adbPath = "'"+os.path.dirname(os.path.realpath(__file__)) + "/adb'"
+            apkFilePath = "'"+os.path.join(path, filename[0])+"'"
             
             proc = subprocess.Popen(adbPath+" install -r " + apkFilePath+"\n", shell=True, stdout=f, stderr=f)
             self.addText(adbPath+" install -r " + apkFilePath+"\n")
-            self.addText(u"now installing...please wait 10 second...")
+            self.addText(u"Now installing...Please wait 10 second...")
             time.sleep(10)
             proc.terminate()
             ## wait for the process to terminate otherwise the output is garbled
